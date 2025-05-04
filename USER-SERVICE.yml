@@ -1,82 +1,58 @@
-server:
-  port: 8081
+# server configuration (optional)
+# server:
+#   port: 8081
 
 spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/microservices
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-
-
-
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    fetch-registry: true
-    register-with-eureka: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-
+  application:
+    name: USER-SERVICE
+  config:
+    import: configserver:http://localhost:8080  # Importing centralized config from Spring Cloud Config Server
 
 management:
   health:
     circuitbreaker:
-      enabled: true
+      enabled: true  # Enable circuit breaker health indicator
   endpoints:
     web:
       exposure:
-        include: health
+        include: health  # Expose /actuator/health endpoint
   endpoint:
     health:
-      show-details: always
-#config for CIRCUIT BREAKER
-resilience4j:
-  circuitbreaker:
-    instances:
-      ratingBroker:
-        registerHealthIndicator: true
-        slidingWindowSize: 5
-        minimumNumberOfCalls: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 6s
-        permittedNumberOfCallsInHalfOpenState: 3
-        eventConsumerBufferSize: 10
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        slidingWindowType: COUNT_BASED
-resilience4j:
-  circuitbreaker:
-    instances:
-      ratingBroker:
-        registerHealthIndicator: true
-        slidingWindowSize: 5
-        minimumNumberOfCalls: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 6s
-        permittedNumberOfCallsInHalfOpenState: 3
-        eventConsumerBufferSize: 10
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        slidingWindowType: COUNT_BASED
-#config for Re-TRY
-  retry:
-    instance:
-      ratingRetry:
-        max-attempts: 3
-        wait-duration: 2
+      show-details: always  # Always show health details
 
-#config for Rate Limiter 
+resilience4j:
+
+  # -------------------------
+  # CIRCUIT BREAKER CONFIG
+  # -------------------------
+  circuitbreaker:
+    instances:
+      ratingBroker:  # Unique name for this circuit breaker (used in @CircuitBreaker annotation)
+        registerHealthIndicator: true
+        slidingWindowSize: 5  # Number of recent calls to consider
+        minimumNumberOfCalls: 5  # Minimum calls before CB calculates failure rate
+        failureRateThreshold: 50  # If 50% of calls fail, CB opens
+        waitDurationInOpenState: 6s  # Time CB stays open before transitioning to half-open
+        permittedNumberOfCallsInHalfOpenState: 3  # Calls allowed in half-open state
+        eventConsumerBufferSize: 10
+        automaticTransitionFromOpenToHalfOpenEnabled: true  # Auto transition without waiting for user trigger
+        slidingWindowType: COUNT_BASED  # Count-based sliding window
+
+  # -------------------------
+  # RETRY CONFIG
+  # -------------------------
+  retry:
+    instances:
+      ratingRetry:  # Name of this retry config (used in @Retry annotation)
+        max-attempts: 3  # Number of retry attempts
+        wait-duration: 2s  # Wait time between each retry attempt
+
+  # -------------------------
+  # RATE LIMITER CONFIG
+  # -------------------------
   ratelimiter:
-    instance:
-      userRateLimiter:
-        limitRefreshPeriod: 4s
-        limitForPeriod: 2
-        timeoutDuration : 0s
+    instances:
+      userRateLimiter:  # Name of this rate limiter (used in @RateLimiter annotation)
+        limitRefreshPeriod: 4s  # Time window to allow a fixed number of calls
+        limitForPeriod: 2  # Max 2 calls per 4 seconds
+        timeoutDuration: 0s  # Wait time to acquire permission (0 = no wait)
