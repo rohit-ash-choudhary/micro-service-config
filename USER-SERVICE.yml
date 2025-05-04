@@ -39,7 +39,7 @@ management:
   endpoint:
     health:
       show-details: always
-
+#config for CIRCUIT BREAKER
 resilience4j:
   circuitbreaker:
     instances:
@@ -66,11 +66,17 @@ resilience4j:
         eventConsumerBufferSize: 10
         automaticTransitionFromOpenToHalfOpenEnabled: true
         slidingWindowType: COUNT_BASED
-
+#config for Re-TRY
   retry:
     instance:
       ratingRetry:
         max-attempts: 3
         wait-duration: 2
 
-
+#config for Rate Limiter 
+  ratelimiter:
+    instance:
+      userRateLimiter:
+        limitRefreshPeriod: 4s
+        limitForPeriod: 2
+        timeoutDuration : 0s
