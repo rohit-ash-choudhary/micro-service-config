@@ -5,8 +5,7 @@
 spring:
   application:
     name: USER-SERVICE
-  config:
-    import: configserver:http://localhost:8080  # Importing centralized config from Spring Cloud Config Server
+  
 
 management:
   health:
